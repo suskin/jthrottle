@@ -1,5 +1,3 @@
-import java.util.concurrent.locks.Lock;
-
 /**
  * 
  * @author dsuskin
@@ -104,5 +102,17 @@ public class Bucket {
         }
 
         return shouldThrottle;
+    }
+
+    public String getOperationName() {
+        return operationName;
+    }
+
+    public int getRefillTokensPerSecond() {
+        return refillTokensPerSecond;
+    }
+
+    public int getTokenCapacity() {
+        return tokenCapacity;
     }
 }
