@@ -7,12 +7,17 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentNavigableMap;
 
 /**
+ * We need a way of managing a set of buckets which are created based on a set
+ * of throttling rules.
  * 
  * @author dsuskin
  * 
  */
 public class Throttler {
 
+    /**
+     * 
+     */
     private final ConcurrentMap<String, Bucket> buckets;
 
     /**
@@ -22,6 +27,10 @@ public class Throttler {
      */
     private final ConcurrentNavigableMap<String, Rule> rules;
 
+    /**
+     * 
+     * @param rules
+     */
     public Throttler(final ConcurrentNavigableMap<String, Rule> rules) {
         super();
         this.buckets = new ConcurrentHashMap<String, Bucket>();
@@ -46,9 +55,9 @@ public class Throttler {
     /**
      * Update the numbers of tokens in the buckets.
      */
-    public void tick() {
+    void tick() {
         final Collection<Bucket> bucketsToUpdate = buckets.values();
-        
+
         if (bucketsToUpdate != null) {
             for (Bucket bucket : bucketsToUpdate) {
                 bucket.tick();

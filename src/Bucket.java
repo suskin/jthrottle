@@ -43,6 +43,23 @@ public class Bucket {
     }
 
     /**
+     * Calls should only go through successfully while there are tokens left in
+     * the bucket.
+     * 
+     * @return true if the call tracked by this bucket should be throttled,
+     *         false otherwise
+     */
+    public boolean throttle() {
+        boolean shouldThrottle;
+        synchronized (tokenCount) {
+            shouldThrottle = tokenCount == 0;
+            tokenCount = Math.max(tokenCount - 1, 0);
+        }
+
+        return shouldThrottle;
+    }
+
+    /**
      * Occasionally tokens should be added to the bucket, at the rate to which
      * this bucket is configured.
      */
@@ -85,23 +102,6 @@ public class Bucket {
                 * TICK_SNAP_INCREMENT_NANOS;
 
         return roundedNanosSinceLastTick;
-    }
-
-    /**
-     * Calls should only go through successfully while there are tokens left in
-     * the bucket.
-     * 
-     * @return true if the call tracked by this bucket should be throttled,
-     *         false otherwise
-     */
-    public boolean throttle() {
-        boolean shouldThrottle;
-        synchronized (tokenCount) {
-            shouldThrottle = tokenCount == 0;
-            tokenCount = Math.max(tokenCount - 1, 0);
-        }
-
-        return shouldThrottle;
     }
 
     public String getOperationName() {
