@@ -1,3 +1,6 @@
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Rules are comparable on the operation name, to make it easier for the
  * throttler to find the appropriate rule for a given operation.
@@ -10,8 +13,10 @@ public class Rule implements Comparable<Rule> {
     private final int tokenBucketRefilledTokensPerSecond;
     private final int tokenBucketCapacity;
 
-    public Rule(String operationName, int tokenBucketRefilledTokensPerSecond,
-            int tokenBucketCapacity) {
+    @JsonCreator
+    public Rule(@JsonProperty("operation") String operationName,
+            @JsonProperty("refillRate") int tokenBucketRefilledTokensPerSecond,
+            @JsonProperty("capacity") int tokenBucketCapacity) {
         super();
         this.operationName = operationName;
         this.tokenBucketRefilledTokensPerSecond = tokenBucketRefilledTokensPerSecond;
