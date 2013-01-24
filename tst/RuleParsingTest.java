@@ -40,6 +40,11 @@ public class RuleParsingTest {
     }
 
     @Test
+    public void shouldErrorIfFieldMissing() throws Exception {
+        throw new UnsupportedOperationException("Test not implemented");
+    }
+
+    @Test
     public void shouldParseSingleRule() throws Exception {
         initializeRules(1);
         ConcurrentNavigableMap<String, Rule> parsedRules = RuleFactory
