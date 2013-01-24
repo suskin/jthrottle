@@ -1,9 +1,14 @@
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Rules are comparable on the operation name, to make it easier for the
  * throttler to find the appropriate rule for a given operation.
+ * 
+ * TODO may want to have equality compare all fields, and have a separate
+ * comparator for checking just the operation name. Rule comparison shouldn't be
+ * linked to how they are used in a single case.
  * 
  * @author dsuskin
  * 
@@ -23,14 +28,17 @@ public class Rule implements Comparable<Rule> {
         this.tokenBucketCapacity = tokenBucketCapacity;
     }
 
+    @JsonGetter("operation")
     public String getOperationName() {
         return operationName;
     }
 
+    @JsonGetter("refillRate")
     public int getTokenBucketRefilledTokensPerSecond() {
         return tokenBucketRefilledTokensPerSecond;
     }
 
+    @JsonGetter("capacity")
     public int getTokenBucketCapacity() {
         return tokenBucketCapacity;
     }
