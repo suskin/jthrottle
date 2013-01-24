@@ -24,7 +24,7 @@ public class RuleFactory {
      * @param in
      * @return
      */
-    public ConcurrentNavigableMap<String, Rule> createRules(InputStream in) {
+    public static ConcurrentNavigableMap<String, Rule> parseRules(InputStream in) {
         ObjectMapper om = new ObjectMapper();
 
         List<Rule> parsedRules = null;
