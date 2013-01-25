@@ -37,7 +37,7 @@ public class Bucket {
         this.tokenCapacity = tokenCapacity;
 
         tokenCount = tokenCapacity;
-        lastTickTime = null;
+        lastTickTime = Long.MIN_VALUE;
         refillTokensPerTickIncrement = refillTokensPerSecond
                 / MAX_TICKS_PER_SECOND;
     }
@@ -90,7 +90,7 @@ public class Bucket {
         long currentNanos = System.nanoTime();
 
         synchronized (lastTickTime) {
-            if (lastTickTime == null) {
+            if (lastTickTime == Long.MIN_VALUE) {
                 lastTickTime = currentNanos;
             }
         }
