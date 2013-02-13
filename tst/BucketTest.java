@@ -28,13 +28,6 @@ public class BucketTest {
         bucket = null;
     }
 
-    private static void useAllTokensFromBucket(Bucket bucket) {
-        for (int i = 0; i < bucket.getTokenCapacity(); i++) {
-            assertFalse("Emptying bucket; should still have tokens",
-                    bucket.throttle());
-        }
-    }
-
     @Test
     public void shouldBeNonEmptyWhenInitialized() {
         assertFalse("No throttle when initialized", bucket.throttle());
@@ -42,13 +35,13 @@ public class BucketTest {
 
     @Test
     public void shouldThrottleWhenEmpty() {
-        useAllTokensFromBucket(bucket);
+        TestUtils.useAllTokensFromBucket(bucket);
         assertTrue("Throttle when empty", bucket.throttle());
     }
 
     @Test
     public void shouldAddTokensOnTick() throws Exception {
-        useAllTokensFromBucket(bucket);
+        TestUtils.useAllTokensFromBucket(bucket);
         assertTrue("Bucket empty", bucket.throttle());
         bucket.tick();
         Thread.sleep(500);
@@ -58,12 +51,12 @@ public class BucketTest {
 
     @Test
     public void shouldStopAddingTokensAtCapacity() throws Exception {
-        useAllTokensFromBucket(bucket);
+        TestUtils.useAllTokensFromBucket(bucket);
         assertTrue("Bucket empty", bucket.throttle());
         bucket.tick();
         Thread.sleep(500);
         bucket.tick();
-        useAllTokensFromBucket(bucket);
+        TestUtils.useAllTokensFromBucket(bucket);
         assertTrue("Bucket contained number of tokens equaling capacity",
                 bucket.throttle());
     }
