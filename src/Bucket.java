@@ -18,7 +18,7 @@ public class Bucket {
 
     private final String operationName;
     private final int refillTokensPerSecond;
-    private final int refillTokensPerTickIncrement;
+    private final double refillTokensPerTickIncrement;
     private final int tokenCapacity;
 
     private Integer tokenCount;
@@ -39,7 +39,7 @@ public class Bucket {
         tokenCount = tokenCapacity;
         lastTickTime = Long.MIN_VALUE;
         refillTokensPerTickIncrement = refillTokensPerSecond
-                / MAX_TICKS_PER_SECOND;
+                / (double) MAX_TICKS_PER_SECOND;
     }
 
     /**
@@ -71,14 +71,44 @@ public class Bucket {
         double tickIncrementsSinceLastTick = elapsedMillisSinceLastTick
                 / (double) MILLIS_PER_SECOND * MAX_TICKS_PER_SECOND;
 
-        synchronized (tokenCount) {
-            tokenCount += (int) (tickIncrementsSinceLastTick * refillTokensPerTickIncrement);
-            tokenCount = Math.min(tokenCapacity, tokenCount);
+        // NOTE since some truncation of tokens to add occurs, if your refill rate
+        // doesn't divide evenly by your tick interval, your observed throttle rate
+        // may end up being slightly lower than the configured throttle rate.
+        // You can adjust it by calculating tokensToAdd / fractionalTokensToAdd * elapsedNanosSinceLastTick,
+        // and using that value instead of elapsedNanosSinceLastTick. However, that approach
+        // allows for a slightly *higher* observed rate than configured rate, since the long may be truncated
+        // and the tick will appear to have occurred on a shorter interval. I have taken
+        // the stance that it is better to err on the side of a slightly lower throttle rate
+        // than a higher one.
+        double fractionalTokensToAdd = tickIncrementsSinceLastTick * refillTokensPerTickIncrement;
+        int tokensToAdd = (int) fractionalTokensToAdd;
+
+        tryCompleteTick(tokensToAdd, elapsedNanosSinceLastTick);
+    }
+
+    /**
+     * Completes the tick operation, only updating the last tick time if tokens
+     * are to be added. If tokens are not to be added, the bucket will keep
+     * counting up for the time since the last tick, so that it counts the
+     * number of tokens to add correctly when it is time to add them.
+     * 
+     * @param tokensToAdd
+     *            The calculated number of tokens to add
+     * @param elapsedNanosSinceLastTick
+     *            The elapsed time since the previously applied tick
+     */
+    private void tryCompleteTick(int tokensToAdd, long elapsedNanosSinceLastTick) {
+        if (tokensToAdd > 0) {
+            synchronized (tokenCount) {
+                tokenCount += tokensToAdd;
+                tokenCount = Math.min(tokenCapacity, tokenCount);
+            }
+
+            synchronized (lastTickTime) {
+                lastTickTime += elapsedNanosSinceLastTick;
+            }
         }
 
-        synchronized (lastTickTime) {
-            lastTickTime += elapsedNanosSinceLastTick;
-        }
     }
 
     /**
