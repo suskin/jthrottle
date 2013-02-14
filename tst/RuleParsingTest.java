@@ -9,6 +9,7 @@ import java.util.concurrent.ConcurrentNavigableMap;
 import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -49,6 +50,7 @@ public class RuleParsingTest {
      * 
      * @throws Exception
      */
+    @Ignore
     @Test(expected = IllegalStateException.class)
     public void shouldErrorIfFieldMissing() throws Exception {
         testRules = "[{\"operation\":\"foo/test0\",\"capacity\":0}]";
