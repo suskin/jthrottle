@@ -18,10 +18,19 @@ public class Rule implements Comparable<Rule> {
     private final int tokenBucketRefilledTokensPerSecond;
     private final int tokenBucketCapacity;
 
+    /**
+     * Apparently the 'required' field does not do what it's supposed to do yet;
+     * see http://jira.codehaus.org/browse/JACKSON-767
+     * 
+     * @param operationName
+     * @param tokenBucketRefilledTokensPerSecond
+     * @param tokenBucketCapacity
+     */
     @JsonCreator
-    public Rule(@JsonProperty("operation") String operationName,
-            @JsonProperty("refillRate") int tokenBucketRefilledTokensPerSecond,
-            @JsonProperty("capacity") int tokenBucketCapacity) {
+    public Rule(
+            @JsonProperty(value = "operation", required = true) String operationName,
+            @JsonProperty(value = "refillRate", required = true) int tokenBucketRefilledTokensPerSecond,
+            @JsonProperty(value = "capacity", required = true) int tokenBucketCapacity) {
         super();
         this.operationName = operationName;
         this.tokenBucketRefilledTokensPerSecond = tokenBucketRefilledTokensPerSecond;

@@ -39,9 +39,20 @@ public class RuleParsingTest {
         testRules = new ObjectMapper().writeValueAsString(sourceRules);
     }
 
-    @Test
+    /**
+     * It turns out this case is not well supported by Jackson; the @JsonProperty
+     * includes a field for this but it does not do anything. See
+     * http://jira.codehaus.org/browse/JACKSON-767
+     * 
+     * Fortunately it's not a critical feature, but it does make debugging bad
+     * configurations a little more manual.
+     * 
+     * @throws Exception
+     */
+    @Test(expected = IllegalStateException.class)
     public void shouldErrorIfFieldMissing() throws Exception {
-        throw new UnsupportedOperationException("Test not implemented");
+        testRules = "[{\"operation\":\"foo/test0\",\"capacity\":0}]";
+        RuleFactory.parseRules(IOUtils.toInputStream(testRules));
     }
 
     @Test
