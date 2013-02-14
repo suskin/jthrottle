@@ -1,5 +1,4 @@
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.NavigableSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -34,8 +33,7 @@ public class Throttler {
     public Throttler(final ConcurrentNavigableMap<String, Rule> rules) {
         super();
         this.buckets = new ConcurrentHashMap<String, Bucket>();
-        this.rules = (ConcurrentNavigableMap<String, Rule>) Collections
-                .unmodifiableMap(rules);
+        this.rules = rules;
     }
 
     /**
@@ -46,10 +44,15 @@ public class Throttler {
      */
     public boolean throttle(final String operationName) {
         if (!buckets.containsKey(operationName)) {
-            buckets.putIfAbsent(operationName, createBucket(operationName));
+            Bucket newBucket = tryCreateBucket(operationName);
+
+            if (newBucket != null) {
+                buckets.putIfAbsent(operationName, newBucket);
+            }
         }
 
-        return buckets.get(operationName).throttle();
+        return !buckets.containsKey(operationName)
+                || buckets.get(operationName).throttle();
     }
 
     /**
@@ -66,19 +69,27 @@ public class Throttler {
     }
 
     /**
-     * We need a new bucket.
+     * We need a new bucket. A bucket for an operation is created from the rule
+     * whose operation name is the longest matching prefix of the bucket's
+     * operation name.
+     * 
+     * For example, let there be two rules: one with an operation name of "rule"
+     * and another with an operation name of "ruleLong". When a new bucket is
+     * created for an operation with a name of "ruleLong/child", it takes the
+     * rules from the rule with the operation name of "ruleLong".
      * 
      * @param sourceOperationName
-     * @return
+     * @return A new bucket to throttle calls to the given operation, or null if
+     *         no matching rule was found.
      */
-    private Bucket createBucket(final String sourceOperationName) {
+    private Bucket tryCreateBucket(final String sourceOperationName) {
         Entry<String, Rule> operationRuleEntry = rules
                 .floorEntry(sourceOperationName);
 
-        if (operationRuleEntry == null) {
-            throw new IllegalArgumentException(
-                    "No rule found matching operation '" + sourceOperationName
-                            + "'");
+        if (operationRuleEntry == null
+                || !sourceOperationName.startsWith(operationRuleEntry
+                        .getValue().getOperationName())) {
+            return null;
         }
 
         Rule operationRule = operationRuleEntry.getValue();
