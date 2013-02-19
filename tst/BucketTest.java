@@ -1,9 +1,18 @@
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 /**
  * 
@@ -61,8 +70,54 @@ public class BucketTest {
                 bucket.throttle());
     }
 
+    /**
+     * When throttle() is called by multiple threads at the same time, it should
+     * not allow more calls to succeed that the bucket has been configured to
+     * allow.
+     * 
+     * @throws Exception
+     */
     @Test
-    public void shouldDecrementTokensInThreadSafeWay() {
-        throw new UnsupportedOperationException("Test not implemented");
+    public void shouldDecrementTokensInThreadSafeWay() throws Exception {
+        bucket = Mockito.spy(bucket);
+        int threadCount = CAPACITY + 1;
+        final CountDownLatch latch = new CountDownLatch(threadCount);
+
+        Mockito.doAnswer(new Answer<Boolean>() {
+            // synchronizes calling threads on a countdown latch
+            // so that they all call #throttle() at the same time
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                latch.countDown();
+                latch.await();
+                return (Boolean) invocation.callRealMethod();
+            }
+        }).when(bucket).throttle();
+
+        final AtomicInteger successfulCalls = new AtomicInteger();
+        final List<Thread> threads = new ArrayList<Thread>(threadCount);
+        for (int i = 0; i < threadCount; i++) {
+            Thread thread = new Thread(new Runnable() {
+
+                @Override
+                public void run() {
+                    if (bucket.throttle()) {
+                        successfulCalls.incrementAndGet();
+                    }
+                }
+            });
+
+            threads.add(thread);
+            thread.start();
+        }
+
+        for (Thread t : threads) {
+            t.join(1000);
+        }
+
+        // We expect one success for each token in the bucket.
+        // No more, no less.
+        assertEquals("Successful calls equals number of available tokens",
+                successfulCalls.intValue(), CAPACITY);
     }
 }
