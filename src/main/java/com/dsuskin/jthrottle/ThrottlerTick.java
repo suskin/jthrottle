@@ -1,3 +1,5 @@
+package com.dsuskin.jthrottle;
+
 import java.util.TimerTask;
 
 /**

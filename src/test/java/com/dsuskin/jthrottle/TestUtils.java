@@ -1,3 +1,5 @@
+package com.dsuskin.jthrottle;
+
 import static org.junit.Assert.assertFalse;
 
 import java.util.ArrayList;

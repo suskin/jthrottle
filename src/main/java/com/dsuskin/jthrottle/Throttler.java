@@ -1,3 +1,5 @@
+package com.dsuskin.jthrottle;
+
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.NavigableSet;
