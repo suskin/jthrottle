@@ -1,7 +1,7 @@
 package com.dsuskin.jthrottle;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.Reader;
 import java.util.List;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -26,7 +26,7 @@ public class RuleFactory {
      * @param in
      * @return
      */
-    public static ConcurrentNavigableMap<String, Rule> parseRules(InputStream in) {
+    public static ConcurrentNavigableMap<String, Rule> parseRules(Reader in) {
         ObjectMapper om = new ObjectMapper();
 
         List<Rule> parsedRules = null;

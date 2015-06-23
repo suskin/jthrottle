@@ -3,12 +3,13 @@ package com.dsuskin.jthrottle;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.StringReader;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentNavigableMap;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -56,14 +57,14 @@ public class RuleParsingTest {
     @Test(expected = IllegalStateException.class)
     public void shouldErrorIfFieldMissing() throws Exception {
         testRules = "[{\"operation\":\"foo/test0\",\"capacity\":0}]";
-        RuleFactory.parseRules(IOUtils.toInputStream(testRules));
+        RuleFactory.parseRules(new StringReader(testRules));
     }
 
     @Test
     public void shouldParseSingleRule() throws Exception {
         initializeRules(1);
         ConcurrentNavigableMap<String, Rule> parsedRules = RuleFactory
-                .parseRules(IOUtils.toInputStream(testRules));
+                .parseRules(new StringReader(testRules));
 
         assertParsedRulesMatchSourceRules(parsedRules, sourceRules);
     }
@@ -72,7 +73,7 @@ public class RuleParsingTest {
     public void shouldParseMultipleRules() throws Exception {
         initializeRules(5);
         ConcurrentNavigableMap<String, Rule> parsedRules = RuleFactory
-                .parseRules(IOUtils.toInputStream(testRules));
+                .parseRules(new StringReader(testRules));
 
         assertParsedRulesMatchSourceRules(parsedRules, sourceRules);
     }
