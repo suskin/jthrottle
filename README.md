@@ -20,15 +20,16 @@ systems. A mature service must eventually be able to shed excess load.
 Sometimes it's useful to be able to do this at an application level;
 this is where jthrottle comes in.
 
-## What this is good for
+## Key properties
 
-jthrottle makes a few assumptions about your service architecture:
-
-  * Your traffic is evenly distributed.
-    - jthrottle does not attempt to maintain any state which is shared
-      across machines. This relies on the assumption that your traffic
-      is distributed fairly evenly, like it would be if you used a
-      round-robin approach.
+  * Sliding windows. Since the buckets are constantly refilling, you
+    don't need to worry about users hitting max burst at the end of one slice of
+    time and again at the beginning of the next. This is more a property
+    of the token bucket algorithm than jthrottle specifically, but shrug.
+  * You don't need to know all of your operations ahead of time. Since
+    jthrottle provides simple rule inheritance, you can throttle on
+    things like operation and user id combinations.
+  * Lightweight. The only dependency is on Jackson, for rule parsing.
 
 ## How
 
@@ -66,13 +67,13 @@ throttler.throttle("myOperation/userId1");
 
 ### Specifying rules
 
-jthrottle provides somewhat flexible rule matching: it's all based on
-prefix. Every time you make a call to throttle, a new bucket is created
-if it doesn't already exist. That bucket inherits rules from the rule
-with the longest prefix matching the string passed to jthrottle. I'll
-give an example.
+jthrottle provides somewhat flexible rule matching and inheritance; it's
+all based on prefix. Every time you make a call to throttle, a new bucket
+is created if it doesn't already exist. That bucket inherits rules from
+the rule with the longest prefix matching the string passed to jthrottle.
+I'll give an example.
 
-Let's say I have the following rules:
+Let's say I have specified the following as the rules:
 
 ```json
 [
@@ -94,10 +95,32 @@ same rules. If I pass it "myOperation", a third bucket.
 
 When created, new buckets are full.
 
+## Assumptions
+
+jthrottle makes a few assumptions:
+
+  * Your traffic is evenly distributed.
+    - jthrottle does not attempt to maintain any state which is shared
+      across machines. This relies on the assumption that your traffic
+      is distributed fairly evenly, like it would be if you used a
+      round-robin approach.
+    - However, jthrottle is lightweight and flexible enough that if
+      you needed some other structure, you could probably use jthrottle
+      to power it.
+  * You'll use delimiters in your operation strings
+    - Rule matching doesn't use a real Trie, so longest-prefix matching
+      only works if you use delimiters in your rules. So if you have
+      rules "a" and "ab", "a/c" and "a-c" will inherit from "a", but
+      "ac" won't match anything. This use-case can be accommodated by
+      having trickier rule-matching logic, but I hear about it being a
+      legimate use-case I'm going to hold off on that.
+
 ## Potential bottlenecks
 
 * Number of buckets (map size)
 * Number of buckets (refilling overhead)
+
+TODO some more details about bottlenecks
 
 ## License
 
